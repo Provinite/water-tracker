@@ -17,8 +17,8 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
         .reduce((sum, e) => sum + e.amount, 0)
 
       const riskLevel = hourWindowMl >= RED_THRESHOLD_ML ? 'red'
-        : hourWindowMl >= YELLOW_THRESHOLD_ML ? 'yellow'
-        : 'green'
+        : hourWindowMl >= YELLOW_THRESHOLD_ML ? 'green'
+        : 'yellow'
 
       const windowStart = new Date(entryTime - ONE_HOUR_MS)
 
@@ -50,7 +50,7 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
       return `That's a lot in a short window — ${total} since ${since}. Consider giving your body a break.`
     }
     if (event.riskLevel === 'yellow') {
-      return `You've had ${total} since ${since}. Maybe ease up a little.`
+      return `Only ${total} since ${since} — remember to keep sipping!`
     }
     return `Looking good — ${total} since ${since}. Nice and steady.`
   }
