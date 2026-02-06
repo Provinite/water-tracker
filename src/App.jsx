@@ -137,6 +137,16 @@ function App() {
   const totalIntakeMl = waterIntake.reduce((sum, entry) => sum + entry.amount, 0)
   const progress = Math.min((totalIntakeMl / dailyGoalMl) * 100, 100)
 
+  const ONE_HOUR_MS = 60 * 60 * 1000
+  const YELLOW_THRESHOLD_ML = 500
+  const RED_THRESHOLD_ML = 946
+  const lastHourMl = waterIntake
+    .filter(e => Date.now() - new Date(e.timestamp).getTime() < ONE_HOUR_MS)
+    .reduce((sum, e) => sum + e.amount, 0)
+  const hourlyLevel = lastHourMl >= RED_THRESHOLD_ML ? 'red'
+    : lastHourMl >= YELLOW_THRESHOLD_ML ? 'yellow'
+    : 'green'
+
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -266,6 +276,15 @@ function App() {
         <p className="progress-text">
           {mlToUnit(totalIntakeMl)} {currentUnit.short} / {mlToUnit(dailyGoalMl)} {currentUnit.short} ({Math.round(progress)}%)
         </p>
+      </div>
+
+      <div className={`hourly-indicator ${hourlyLevel}`}>
+        <span className="hourly-dot" />
+        <span className="hourly-text">
+          Last hour: {mlToUnit(lastHourMl)} {currentUnit.short}
+          {hourlyLevel === 'red' && ' — Slow down! Risk of overhydration.'}
+          {hourlyLevel === 'yellow' && ' — Ease up, approaching high intake.'}
+        </span>
       </div>
 
       <div className="buttons">
