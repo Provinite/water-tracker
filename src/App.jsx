@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Analytics from './Analytics'
 import PillTracker from './PillTracker'
+import Timeline from './Timeline'
 import './App.css'
 
 const PRESET_UNITS = {
@@ -17,6 +18,7 @@ function App() {
   const [unit, setUnit] = useState('ml')
   const [customUnits, setCustomUnits] = useState({})
   const [quickAddAmounts, setQuickAddAmounts] = useState([1, 2, 3, 4])
+  const [pillEntries, setPillEntries] = useState([])
   const [showSettings, setShowSettings] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [newUnitName, setNewUnitName] = useState('')
@@ -156,6 +158,7 @@ function App() {
   }
 
   return (
+    <div className="app-layout">
     <div className="app">
       <header>
         <h1>Water Tracker</h1>
@@ -322,7 +325,9 @@ function App() {
         )}
       </div>
 
-      <PillTracker />
+      <PillTracker onEntriesChange={setPillEntries} />
+    </div>
+    <Timeline waterIntake={waterIntake} pillEntries={pillEntries} currentUnit={currentUnit} mlToUnit={mlToUnit} />
     </div>
   )
 }

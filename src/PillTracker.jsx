@@ -22,7 +22,7 @@ function loadMeds() {
   }
 }
 
-export default function PillTracker() {
+export default function PillTracker({ onEntriesChange }) {
   const [medications, setMedications] = useState(loadMeds)
   const [entries, setEntries] = useState(loadLog)
   const [newMedName, setNewMedName] = useState('')
@@ -38,7 +38,8 @@ export default function PillTracker() {
       date: new Date().toDateString(),
       entries,
     }))
-  }, [entries])
+    onEntriesChange?.(entries)
+  }, [entries, onEntriesChange])
 
   const logMed = (med) => {
     setEntries(prev => [...prev, {

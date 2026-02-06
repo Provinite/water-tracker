@@ -1,7 +1,16 @@
+.app-layout {
+  display: flex;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  gap: 2rem;
+  padding: 2rem;
+}
+
 .app {
   max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
+  flex: 1;
+  min-width: 0;
 }
 
 header {
@@ -338,8 +347,14 @@ header h1 {
   color: white;
 }
 
+@media (max-width: 900px) {
+  .app-layout {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 640px) {
-  .app {
+  .app-layout {
     padding: 1rem;
   }
 
