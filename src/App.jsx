@@ -146,8 +146,8 @@ function App() {
     .filter(e => Date.now() - new Date(e.timestamp).getTime() < ONE_HOUR_MS)
     .reduce((sum, e) => sum + e.amount, 0)
   const hourlyLevel = lastHourMl >= RED_THRESHOLD_ML ? 'red'
-    : lastHourMl >= YELLOW_THRESHOLD_ML ? 'yellow'
-    : 'green'
+    : lastHourMl >= YELLOW_THRESHOLD_ML ? 'green'
+    : 'yellow'
 
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -286,7 +286,7 @@ function App() {
         <span className="hourly-text">
           Last hour: {mlToUnit(lastHourMl)} {currentUnit.short}
           {hourlyLevel === 'red' && ' — Slow down! Risk of overhydration.'}
-          {hourlyLevel === 'yellow' && ' — Ease up, approaching high intake.'}
+          {hourlyLevel === 'yellow' && ' — Remember to keep sipping!'}
         </span>
       </div>
 
