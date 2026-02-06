@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Analytics from './Analytics'
 import './App.css'
 
 const PRESET_UNITS = {
@@ -16,6 +17,7 @@ function App() {
   const [customUnits, setCustomUnits] = useState({})
   const [quickAddAmounts, setQuickAddAmounts] = useState([1, 2, 3, 4])
   const [showSettings, setShowSettings] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
   const [newUnitName, setNewUnitName] = useState('')
   const [newUnitMl, setNewUnitMl] = useState('')
 
@@ -40,6 +42,31 @@ function App() {
         setWaterIntake(parsed.intake || [])
         setDailyGoalMl(parsed.goalMl || DAILY_GOAL_ML)
       } else {
+        // Archive yesterday's data before clearing
+        if (parsed.intake && parsed.intake.length > 0) {
+          const historyKey = 'waterTrackerHistory'
+          let history = []
+          try { history = JSON.parse(localStorage.getItem(historyKey)) || [] } catch { /* empty */ }
+
+          const yesterdayDate = new Date(parsed.date).toISOString().split('T')[0]
+          if (!history.some(h => h.date === yesterdayDate)) {
+            const totalMl = parsed.intake.reduce((sum, e) => sum + e.amount, 0)
+            history.push({
+              date: yesterdayDate,
+              totalMl,
+              goalMl: parsed.goalMl || DAILY_GOAL_ML,
+              entryCount: parsed.intake.length,
+              entries: parsed.intake.map(e => ({
+                hour: new Date(e.timestamp).getHours(),
+                ml: e.amount,
+              })),
+            })
+            // Trim to 90 days max
+            if (history.length > 90) history = history.slice(-90)
+            localStorage.setItem(historyKey, JSON.stringify(history))
+          }
+        }
+
         localStorage.setItem('waterTracker', JSON.stringify({
           date: today,
           intake: [],
@@ -121,9 +148,14 @@ function App() {
     <div className="app">
       <header>
         <h1>Water Tracker</h1>
-        <button onClick={() => setShowSettings(!showSettings)} className="btn-settings">
-          {showSettings ? 'Close Settings' : 'Settings'}
-        </button>
+        <div className="header-buttons">
+          <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-settings">
+            {showAnalytics ? 'Close Analytics' : 'Analytics'}
+          </button>
+          <button onClick={() => setShowSettings(!showSettings)} className="btn-settings">
+            {showSettings ? 'Close Settings' : 'Settings'}
+          </button>
+        </div>
       </header>
 
       {showSettings && (
@@ -200,6 +232,15 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {showAnalytics && (
+        <Analytics
+          todayIntake={waterIntake}
+          dailyGoalMl={dailyGoalMl}
+          mlToUnit={mlToUnit}
+          currentUnit={currentUnit}
+        />
       )}
 
       <div className="goal-section">

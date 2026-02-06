@@ -19,6 +19,12 @@ header h1 {
   background-clip: text;
 }
 
+.header-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 .btn-settings {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
