@@ -8,7 +8,7 @@ function loadLog() {
   try {
     const saved = JSON.parse(localStorage.getItem(LOG_KEY))
     if (saved && saved.date === new Date().toDateString()) {
-      return saved.entries
+      return Array.isArray(saved.entries) ? saved.entries : []
     }
   } catch { /* empty */ }
   return []
