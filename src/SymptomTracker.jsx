@@ -138,7 +138,7 @@ export default function SymptomTracker({ onEntriesChange }) {
               </button>
               {activeSeverityId === symptom.id && (
                 <div className="severity-picker">
-                  {[1, 2, 3, 4, 5].map(level => (
+                  {[0, 1, 2, 3, 4, 5].map(level => (
                     <button
                       key={level}
                       className="severity-btn"
