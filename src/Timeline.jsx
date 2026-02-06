@@ -3,11 +3,30 @@ import './Timeline.css'
 
 export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUnit }) {
   const events = useMemo(() => {
-    const waterEvents = waterIntake.map(entry => ({
-      type: 'water',
-      timestamp: entry.timestamp,
-      label: `${mlToUnit(entry.amount)} ${currentUnit.short}`,
-    }))
+    const ONE_HOUR_MS = 60 * 60 * 1000
+    const YELLOW_THRESHOLD_ML = 500
+    const RED_THRESHOLD_ML = 946
+
+    const waterEvents = waterIntake.map(entry => {
+      const entryTime = new Date(entry.timestamp).getTime()
+      const hourWindowMl = waterIntake
+        .filter(e => {
+          const t = new Date(e.timestamp).getTime()
+          return t <= entryTime && t > entryTime - ONE_HOUR_MS
+        })
+        .reduce((sum, e) => sum + e.amount, 0)
+
+      const riskLevel = hourWindowMl >= RED_THRESHOLD_ML ? 'red'
+        : hourWindowMl >= YELLOW_THRESHOLD_ML ? 'yellow'
+        : 'green'
+
+      return {
+        type: 'water',
+        timestamp: entry.timestamp,
+        label: `${mlToUnit(entry.amount)} ${currentUnit.short}`,
+        riskLevel,
+      }
+    })
 
     const pillEvents = pillEntries.map(entry => ({
       type: 'pill',
@@ -36,7 +55,7 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
       ) : (
         <ul className="timeline-list">
           {events.map((event, index) => (
-            <li key={`${event.type}-${event.timestamp}-${index}`} className="timeline-item">
+            <li key={`${event.type}-${event.timestamp}-${index}`} className={`timeline-item${event.riskLevel ? ` risk-${event.riskLevel}` : ''}`}>
               <span className={`timeline-dot ${event.type}`} />
               <span className="timeline-time">{formatTime(event.timestamp)}</span>
               <span className="timeline-icon">{event.type === 'water' ? '\u{1F4A7}' : '\u{1F48A}'}</span>

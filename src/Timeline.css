@@ -82,6 +82,30 @@
   text-overflow: ellipsis;
 }
 
+.timeline-item.risk-green {
+  color: #48c78e;
+}
+
+.timeline-item.risk-yellow {
+  color: #ffb74d;
+}
+
+.timeline-item.risk-red {
+  color: #ff4b4b;
+}
+
+.timeline-item.risk-green .timeline-dot.water {
+  background: #48c78e;
+}
+
+.timeline-item.risk-yellow .timeline-dot.water {
+  background: #ffb74d;
+}
+
+.timeline-item.risk-red .timeline-dot.water {
+  background: #ff4b4b;
+}
+
 @media (max-width: 900px) {
   .timeline-sidebar {
     width: 100%;
