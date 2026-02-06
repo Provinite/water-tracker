@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Analytics from './Analytics'
+import PillTracker from './PillTracker'
 import './App.css'
 
 const PRESET_UNITS = {
@@ -301,6 +302,8 @@ function App() {
           </ul>
         )}
       </div>
+
+      <PillTracker />
     </div>
   )
 }
