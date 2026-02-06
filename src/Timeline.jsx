@@ -20,11 +20,15 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
         : hourWindowMl >= YELLOW_THRESHOLD_ML ? 'yellow'
         : 'green'
 
+      const windowStart = new Date(entryTime - ONE_HOUR_MS)
+
       return {
         type: 'water',
         timestamp: entry.timestamp,
         label: `${mlToUnit(entry.amount)} ${currentUnit.short}`,
         riskLevel,
+        hourWindowMl,
+        windowStart,
       }
     })
 
@@ -38,6 +42,18 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     )
   }, [waterIntake, pillEntries, currentUnit, mlToUnit])
+
+  const waterTooltip = (event) => {
+    const total = `${mlToUnit(event.hourWindowMl)} ${currentUnit.short}`
+    const since = formatTime(event.windowStart)
+    if (event.riskLevel === 'red') {
+      return `That's a lot in a short window — ${total} since ${since}. Consider giving your body a break.`
+    }
+    if (event.riskLevel === 'yellow') {
+      return `You've had ${total} since ${since}. Maybe ease up a little.`
+    }
+    return `Looking good — ${total} since ${since}. Nice and steady.`
+  }
 
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -60,6 +76,9 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
               <span className="timeline-time">{formatTime(event.timestamp)}</span>
               <span className="timeline-icon">{event.type === 'water' ? '\u{1F4A7}' : '\u{1F48A}'}</span>
               <span className="timeline-label">{event.label}</span>
+              {event.riskLevel && (
+                <span className="timeline-tooltip">{waterTooltip(event)}</span>
+              )}
             </li>
           ))}
         </ul>
