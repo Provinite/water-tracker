@@ -1,0 +1,129 @@
+.symptom-tracker {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(100, 108, 255, 0.15);
+}
+
+.symptom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.symptom-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.symptom-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.symptom-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.symptom-button-group .btn.active {
+  outline: 2px solid #ff9800;
+  outline-offset: 2px;
+}
+
+.severity-picker {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.severity-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  border: 2px solid #ff9800;
+  background: transparent;
+  color: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.severity-btn:hover {
+  background: #ff9800;
+  color: #fff;
+}
+
+.symptom-manage {
+  background: rgba(100, 108, 255, 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.symptom-manage-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.symptom-manage-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: rgba(100, 108, 255, 0.08);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.add-symptom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.add-symptom-form input {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 2px solid #646cff;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+}
+
+.symptom-log {
+  margin-top: 2rem;
+}
+
+.symptom-log h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.symptom-log ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.symptom-log li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(100, 108, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .symptom-buttons {
+    grid-template-columns: 1fr;
+  }
+}

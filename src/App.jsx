@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Analytics from './Analytics'
 import PillTracker from './PillTracker'
+import SymptomTracker from './SymptomTracker'
 import Timeline from './Timeline'
 import './App.css'
 
@@ -19,6 +20,7 @@ function App() {
   const [customUnits, setCustomUnits] = useState({})
   const [quickAddAmounts, setQuickAddAmounts] = useState([1, 2, 3, 4])
   const [pillEntries, setPillEntries] = useState([])
+  const [symptomEntries, setSymptomEntries] = useState([])
   const [showSettings, setShowSettings] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [newUnitName, setNewUnitName] = useState('')
@@ -326,8 +328,9 @@ function App() {
       </div>
 
       <PillTracker onEntriesChange={setPillEntries} />
+      <SymptomTracker onEntriesChange={setSymptomEntries} />
     </div>
-    <Timeline waterIntake={waterIntake} pillEntries={pillEntries} currentUnit={currentUnit} mlToUnit={mlToUnit} />
+    <Timeline waterIntake={waterIntake} pillEntries={pillEntries} symptomEntries={symptomEntries} currentUnit={currentUnit} mlToUnit={mlToUnit} />
     </div>
   )
 }

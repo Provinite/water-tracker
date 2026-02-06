@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import './Timeline.css'
 
-export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUnit }) {
+export default function Timeline({ waterIntake, pillEntries, symptomEntries, currentUnit, mlToUnit }) {
   const events = useMemo(() => {
     const ONE_HOUR_MS = 60 * 60 * 1000
     const YELLOW_THRESHOLD_ML = 500
@@ -38,10 +38,16 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
       label: entry.dosage ? `${entry.name} ${entry.dosage}` : entry.name,
     }))
 
-    return [...waterEvents, ...pillEvents].sort(
+    const symptomEvents = (symptomEntries || []).map(entry => ({
+      type: 'symptom',
+      timestamp: entry.timestamp,
+      label: `${entry.name} — ${entry.severity}/5`,
+    }))
+
+    return [...waterEvents, ...pillEvents, ...symptomEvents].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     )
-  }, [waterIntake, pillEntries, currentUnit, mlToUnit])
+  }, [waterIntake, pillEntries, symptomEntries, currentUnit, mlToUnit])
 
   const waterTooltip = (event) => {
     const total = `${mlToUnit(event.hourWindowMl)} ${currentUnit.short}`
@@ -74,7 +80,7 @@ export default function Timeline({ waterIntake, pillEntries, currentUnit, mlToUn
             <li key={`${event.type}-${event.timestamp}-${index}`} className={`timeline-item${event.riskLevel ? ` risk-${event.riskLevel}` : ''}`}>
               <span className={`timeline-dot ${event.type}`} />
               <span className="timeline-time">{formatTime(event.timestamp)}</span>
-              <span className="timeline-icon">{event.type === 'water' ? '\u{1F4A7}' : '\u{1F48A}'}</span>
+              <span className="timeline-icon">{event.type === 'water' ? '\u{1F4A7}' : event.type === 'symptom' ? '\u{1FA7A}' : '\u{1F48A}'}</span>
               <span className="timeline-label">{event.label}</span>
               {event.riskLevel && (
                 <span className="timeline-tooltip">{waterTooltip(event)}</span>
