@@ -1,17 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import './PillTracker.css'
 
-const STORAGE_KEY = 'pillTracker'
+const LOG_KEY = 'pillTracker'
 const MEDS_KEY = 'pillTrackerMeds'
 
-function loadToday() {
+function loadLog() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
+    const saved = JSON.parse(localStorage.getItem(LOG_KEY))
     if (saved && saved.date === new Date().toDateString()) {
-      return saved.taken
+      return saved.entries
     }
   } catch { /* empty */ }
-  return {}
+  return []
 }
 
 function loadMeds() {
@@ -24,61 +24,50 @@ function loadMeds() {
 
 export default function PillTracker() {
   const [medications, setMedications] = useState(loadMeds)
-  const [taken, setTaken] = useState(loadToday)
+  const [entries, setEntries] = useState(loadLog)
   const [newMedName, setNewMedName] = useState('')
   const [newMedDosage, setNewMedDosage] = useState('')
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showManage, setShowManage] = useState(false)
 
-  // Persist medications list
   useEffect(() => {
     localStorage.setItem(MEDS_KEY, JSON.stringify(medications))
   }, [medications])
 
-  // Persist today's taken state
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    localStorage.setItem(LOG_KEY, JSON.stringify({
       date: new Date().toDateString(),
-      taken,
+      entries,
     }))
-  }, [taken])
+  }, [entries])
 
-  const toggleTaken = useCallback((medId) => {
-    setTaken(prev => {
-      const updated = { ...prev }
-      if (updated[medId]) {
-        delete updated[medId]
-      } else {
-        updated[medId] = new Date().toISOString()
-      }
-      return updated
-    })
-  }, [])
+  const logMed = (med) => {
+    setEntries(prev => [...prev, {
+      medId: med.id,
+      name: med.name,
+      dosage: med.dosage,
+      timestamp: new Date().toISOString(),
+    }])
+  }
+
+  const removeEntry = (index) => {
+    setEntries(prev => prev.filter((_, i) => i !== index))
+  }
 
   const addMedication = () => {
     const name = newMedName.trim()
     if (!name) return
-    const med = {
+    setMedications(prev => [...prev, {
       id: Date.now().toString(36),
       name,
       dosage: newMedDosage.trim() || null,
-    }
-    setMedications(prev => [...prev, med])
+    }])
     setNewMedName('')
     setNewMedDosage('')
-    setShowAddForm(false)
   }
 
   const removeMedication = (medId) => {
     setMedications(prev => prev.filter(m => m.id !== medId))
-    setTaken(prev => {
-      const updated = { ...prev }
-      delete updated[medId]
-      return updated
-    })
   }
-
-  const takenCount = medications.filter(m => taken[m.id]).length
-  const totalCount = medications.length
 
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -88,80 +77,102 @@ export default function PillTracker() {
     })
   }
 
+  const buttonLabel = (med) => {
+    return med.dosage ? `${med.name} ${med.dosage}` : med.name
+  }
+
   return (
     <div className="pill-tracker">
       <div className="pill-header">
         <h2>Medications</h2>
-        {totalCount > 0 && (
-          <span className="pill-progress">
-            {takenCount}/{totalCount} taken
-          </span>
-        )}
+        <button
+          onClick={() => setShowManage(!showManage)}
+          className="btn-settings"
+        >
+          {showManage ? 'Done' : 'Manage'}
+        </button>
       </div>
 
-      {totalCount === 0 && !showAddForm ? (
-        <p className="empty-state">No medications added yet</p>
-      ) : (
-        <ul className="med-list">
-          {medications.map(med => (
-            <li key={med.id} className={`med-item ${taken[med.id] ? 'taken' : ''}`}>
-              <button
-                className={`med-check ${taken[med.id] ? 'checked' : ''}`}
-                onClick={() => toggleTaken(med.id)}
-                aria-label={taken[med.id] ? `Mark ${med.name} as not taken` : `Mark ${med.name} as taken`}
-              >
-                {taken[med.id] ? '✓' : ''}
-              </button>
-              <div className="med-info">
-                <span className="med-name">{med.name}</span>
-                {med.dosage && <span className="med-dosage">{med.dosage}</span>}
-                {taken[med.id] && (
-                  <span className="med-time">Taken at {formatTime(taken[med.id])}</span>
-                )}
-              </div>
-              <button
-                className="btn-remove"
-                onClick={() => removeMedication(med.id)}
-                aria-label={`Remove ${med.name}`}
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {showAddForm ? (
-        <div className="add-med-form">
-          <input
-            type="text"
-            placeholder="Medication name"
-            value={newMedName}
-            onChange={(e) => setNewMedName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addMedication()}
-            autoFocus
-          />
-          <input
-            type="text"
-            placeholder="Dosage (optional, e.g. 10mg)"
-            value={newMedDosage}
-            onChange={(e) => setNewMedDosage(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addMedication()}
-          />
-          <div className="add-med-actions">
-            <button className="btn btn-primary btn-small" onClick={addMedication}>
-              Add
-            </button>
-            <button className="btn btn-secondary btn-small" onClick={() => setShowAddForm(false)}>
-              Cancel
+      {showManage && (
+        <div className="med-manage">
+          {medications.length > 0 && (
+            <ul className="med-manage-list">
+              {medications.map(med => (
+                <li key={med.id}>
+                  <span>{med.name}{med.dosage ? ` — ${med.dosage}` : ''}</span>
+                  <button
+                    className="btn-remove"
+                    onClick={() => removeMedication(med.id)}
+                    aria-label={`Remove ${med.name}`}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="add-med-form">
+            <input
+              type="text"
+              placeholder="Medication name"
+              value={newMedName}
+              onChange={(e) => setNewMedName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addMedication()}
+            />
+            <input
+              type="text"
+              placeholder="Dosage (optional, e.g. 10mg)"
+              value={newMedDosage}
+              onChange={(e) => setNewMedDosage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addMedication()}
+            />
+            <button className="btn btn-secondary btn-small" onClick={addMedication}>
+              Add Medication
             </button>
           </div>
         </div>
-      ) : (
-        <button className="btn btn-secondary btn-add-med" onClick={() => setShowAddForm(true)}>
-          + Add Medication
-        </button>
       )}
+
+      {medications.length > 0 ? (
+        <div className="pill-buttons">
+          {medications.map(med => (
+            <button
+              key={med.id}
+              onClick={() => logMed(med)}
+              className="btn btn-primary"
+            >
+              {buttonLabel(med)}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">No medications configured — tap Manage to add some</p>
+      )}
+
+      <div className="pill-log">
+        <h3>Today's Log</h3>
+        {entries.length === 0 ? (
+          <p className="empty-state">No medications logged yet today</p>
+        ) : (
+          <ul>
+            {[...entries].reverse().map((entry, index) => (
+              <li key={entries.length - 1 - index}>
+                <span className="entry-time">{formatTime(entry.timestamp)}</span>
+                <span className="entry-amount">
+                  {entry.name}{entry.dosage ? ` ${entry.dosage}` : ''}
+                </span>
+                <button
+                  onClick={() => removeEntry(entries.length - 1 - index)}
+                  className="btn-remove"
+                  aria-label="Remove entry"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }
