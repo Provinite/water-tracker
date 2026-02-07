@@ -153,6 +153,28 @@ function App() {
     : lastHourMl >= YELLOW_THRESHOLD_ML ? 'green'
     : 'yellow'
 
+  const exportAllData = () => {
+    const keys = [
+      'waterTracker', 'waterTrackerHistory',
+      'symptomTracker', 'symptomTrackerSymptoms', 'symptomTrackerHistory',
+      'pillTracker', 'pillTrackerMeds', 'pillTrackerHistory',
+    ]
+    const data = {}
+    for (const key of keys) {
+      try {
+        const val = localStorage.getItem(key)
+        if (val != null) data[key] = JSON.parse(val)
+      } catch { /* skip unparseable */ }
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `water-tracker-export-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -251,6 +273,12 @@ function App() {
                 Add Unit
               </button>
             </div>
+          </div>
+
+          <div className="setting-group">
+            <button onClick={exportAllData} className="btn btn-secondary">
+              Export All Data (JSON)
+            </button>
           </div>
         </div>
       )}
