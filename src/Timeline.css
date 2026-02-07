@@ -7,8 +7,11 @@
   overflow-y: auto;
 }
 
-.timeline-header {
-  font-size: 1.3rem;
+.timeline-date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   margin: 0 0 1rem 0;
   position: sticky;
   top: 0;
@@ -18,9 +21,33 @@
 }
 
 @media (prefers-color-scheme: light) {
-  .timeline-header {
+  .timeline-date-nav {
     background-color: #ffffff;
   }
+}
+
+.timeline-nav-btn {
+  box-sizing: border-box;
+  padding: 0.1rem 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.timeline-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.timeline-date-label {
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 7rem;
+  text-align: center;
 }
 
 .timeline-empty {
@@ -151,7 +178,7 @@
     padding-top: 1rem;
   }
 
-  .timeline-header {
+  .timeline-date-nav {
     position: static;
     padding-bottom: 0;
   }
