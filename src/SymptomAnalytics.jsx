@@ -41,6 +41,36 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
 
     const sorted = [...timeMap.values()].sort((a, b) => a.time - b.time)
 
+    // Add projection data: dashed line from last reading to "now"
+    const nowMins = minutesSinceMidnight(new Date().toISOString())
+    const lastDataTime = sorted.length > 0 ? sorted[sorted.length - 1].time : -1
+
+    for (const name of names) {
+      // Walk backwards to find last point with a real value for this symptom
+      for (let i = sorted.length - 1; i >= 0; i--) {
+        if (sorted[i][name] != null) {
+          // Bridge: projection starts where the solid line ends
+          sorted[i][`${name}_proj`] = sorted[i][name]
+          break
+        }
+      }
+    }
+
+    // Append a "now" point if it's after all existing data
+    if (nowMins > lastDataTime) {
+      const nowPoint = { time: nowMins }
+      for (const name of names) {
+        // Find last known severity for each symptom
+        for (let i = sorted.length - 1; i >= 0; i--) {
+          if (sorted[i][name] != null) {
+            nowPoint[`${name}_proj`] = sorted[i][name]
+            break
+          }
+        }
+      }
+      sorted.push(nowPoint)
+    }
+
     // Pill events as vertical reference lines
     const pills = (pillEntries || []).map(entry => ({
       time: minutesSinceMidnight(entry.timestamp),
@@ -108,6 +138,7 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
     background: 'rgba(30,30,46,0.95)',
     border: '1px solid rgba(100,108,255,0.3)',
     borderRadius: 8,
+    padding: '8px 12px',
     color: '#fff',
     fontSize: 13,
   }
@@ -153,25 +184,50 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
             width={30}
           />
           <Tooltip
-            contentStyle={tooltipStyle}
-            labelFormatter={formatMinutes}
-            formatter={(value, name) => [`${value}/5`, name]}
+            content={({ active, payload, label }) => {
+              if (!active || !payload) return null
+              const items = payload.filter(p => !p.dataKey.endsWith('_proj') && p.value != null)
+              if (items.length === 0) return null
+              return (
+                <div style={tooltipStyle} className="recharts-default-tooltip" >
+                  <p style={{ margin: '0 0 4px', fontWeight: 600 }}>{formatMinutes(label)}</p>
+                  {items.map(item => (
+                    <p key={item.dataKey} style={{ margin: 0, color: item.stroke }}>
+                      {item.dataKey}: {item.value}/5
+                    </p>
+                  ))}
+                </div>
+              )
+            }}
           />
 
           {visibleNames.map((name) => {
             const i = symptomNames.indexOf(name)
-            return (
+            const color = COLORS[i % COLORS.length]
+            return [
               <Line
                 key={name}
                 type="monotone"
                 dataKey={name}
-                stroke={COLORS[i % COLORS.length]}
+                stroke={color}
                 strokeWidth={2.5}
                 dot={{ r: 5, strokeWidth: 2 }}
                 activeDot={{ r: 7 }}
                 connectNulls
-              />
-            )
+              />,
+              <Line
+                key={`${name}_proj`}
+                type="monotone"
+                dataKey={`${name}_proj`}
+                stroke={color}
+                strokeWidth={2}
+                strokeDasharray="6 3"
+                dot={false}
+                activeDot={false}
+                connectNulls
+                legendType="none"
+              />,
+            ]
           })}
 
           {pillEvents.map((pill, i) => (
