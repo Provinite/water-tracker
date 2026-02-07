@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Analytics from './Analytics'
 import PillTracker from './PillTracker'
+import SymptomAnalytics from './SymptomAnalytics'
 import SymptomTracker from './SymptomTracker'
 import Timeline from './Timeline'
 import './App.css'
@@ -23,6 +24,7 @@ function App() {
   const [symptomEntries, setSymptomEntries] = useState([])
   const [showSettings, setShowSettings] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showSymptomAnalytics, setShowSymptomAnalytics] = useState(false)
   const [newUnitName, setNewUnitName] = useState('')
   const [newUnitMl, setNewUnitMl] = useState('')
 
@@ -168,6 +170,9 @@ function App() {
           <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-settings">
             {showAnalytics ? 'Close Analytics' : 'Analytics'}
           </button>
+          <button onClick={() => setShowSymptomAnalytics(!showSymptomAnalytics)} className="btn-settings">
+            {showSymptomAnalytics ? 'Close Symptoms' : 'Symptom Analytics'}
+          </button>
           <button onClick={() => setShowSettings(!showSettings)} className="btn-settings">
             {showSettings ? 'Close Settings' : 'Settings'}
           </button>
@@ -254,6 +259,16 @@ function App() {
         <Analytics
           todayIntake={waterIntake}
           dailyGoalMl={dailyGoalMl}
+          mlToUnit={mlToUnit}
+          currentUnit={currentUnit}
+        />
+      )}
+
+      {showSymptomAnalytics && (
+        <SymptomAnalytics
+          symptomEntries={symptomEntries}
+          pillEntries={pillEntries}
+          waterIntake={waterIntake}
           mlToUnit={mlToUnit}
           currentUnit={currentUnit}
         />

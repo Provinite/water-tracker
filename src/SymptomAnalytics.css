@@ -1,0 +1,36 @@
+.symptom-analytics-panel {
+  background: rgba(100, 108, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.symptom-analytics-panel h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.symptom-analytics-empty {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.symptom-analytics-panel .recharts-legend-item-text {
+  font-size: 0.85rem;
+}
+
+@media (prefers-color-scheme: light) {
+  .symptom-analytics-panel .recharts-default-tooltip {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(100, 108, 255, 0.2) !important;
+    color: #1a1a2e !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .symptom-analytics-panel {
+    padding: 1rem;
+  }
+}
