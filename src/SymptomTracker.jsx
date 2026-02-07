@@ -3,12 +3,25 @@ import './SymptomTracker.css'
 
 const LOG_KEY = 'symptomTracker'
 const SYMPTOMS_KEY = 'symptomTrackerSymptoms'
+const HISTORY_KEY = 'symptomTrackerHistory'
 
 function loadLog() {
   try {
     const saved = JSON.parse(localStorage.getItem(LOG_KEY))
     if (saved && saved.date === new Date().toDateString()) {
       return Array.isArray(saved.entries) ? saved.entries : []
+    }
+    // Archive stale entries before discarding
+    if (saved && saved.entries && saved.entries.length > 0 && saved.date) {
+      try {
+        let history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []
+        const isoDate = new Date(saved.date).toISOString().split('T')[0]
+        if (!history.some(h => h.date === isoDate)) {
+          history.push({ date: isoDate, entries: saved.entries })
+          if (history.length > 90) history = history.slice(-90)
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+        }
+      } catch { /* empty */ }
     }
   } catch { /* empty */ }
   return []
