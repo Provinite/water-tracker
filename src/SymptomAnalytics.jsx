@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ReferenceDot,
@@ -73,6 +73,16 @@ function loadHistoricalData(dateStr) {
 export default function SymptomAnalytics({ symptomEntries, pillEntries, waterIntake, mlToUnit, currentUnit }) {
   const [hiddenSymptoms, setHiddenSymptoms] = useState(new Set())
   const [selectedRange, setSelectedRange] = useState('today')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const toggleFullscreen = useCallback(() => setIsFullscreen(prev => !prev), [])
+
+  useEffect(() => {
+    if (!isFullscreen) return
+    const onKey = (e) => { if (e.key === 'Escape') setIsFullscreen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isFullscreen])
 
   const isMultiDay = selectedRange === 'week'
 
@@ -213,21 +223,36 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
 
   const hasData = resolvedSymptoms && resolvedSymptoms.length > 0
 
+  const panelClass = `symptom-analytics-panel${isFullscreen ? ' fullscreen' : ''}`
+
+  const heading = (
+    <div className="symptom-analytics-header">
+      <h2>Symptom Analytics</h2>
+      <button className="symptom-fullscreen-btn" onClick={toggleFullscreen} title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>
+        {isFullscreen ? '\u2716' : '\u26F6'}
+      </button>
+    </div>
+  )
+
+  const rangeToggle = (
+    <div className="symptom-range-toggle">
+      {['today', 'yesterday', 'week'].map(range => (
+        <button
+          key={range}
+          className={selectedRange === range ? 'active' : ''}
+          onClick={() => setSelectedRange(range)}
+        >
+          {range === 'today' ? 'Today' : range === 'yesterday' ? 'Yesterday' : 'This Week'}
+        </button>
+      ))}
+    </div>
+  )
+
   if (!hasData && selectedRange === 'today') {
     return (
-      <div className="symptom-analytics-panel">
-        <h2>Symptom Analytics</h2>
-        <div className="symptom-range-toggle">
-          {['today', 'yesterday', 'week'].map(range => (
-            <button
-              key={range}
-              className={selectedRange === range ? 'active' : ''}
-              onClick={() => setSelectedRange(range)}
-            >
-              {range === 'today' ? 'Today' : range === 'yesterday' ? 'Yesterday' : 'This Week'}
-            </button>
-          ))}
-        </div>
+      <div className={panelClass}>
+        {heading}
+        {rangeToggle}
         <p className="symptom-analytics-empty">
           Log some symptoms to see how they change throughout the day.
         </p>
@@ -237,19 +262,9 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
 
   if (!hasData) {
     return (
-      <div className="symptom-analytics-panel">
-        <h2>Symptom Analytics</h2>
-        <div className="symptom-range-toggle">
-          {['today', 'yesterday', 'week'].map(range => (
-            <button
-              key={range}
-              className={selectedRange === range ? 'active' : ''}
-              onClick={() => setSelectedRange(range)}
-            >
-              {range === 'today' ? 'Today' : range === 'yesterday' ? 'Yesterday' : 'This Week'}
-            </button>
-          ))}
-        </div>
+      <div className={panelClass}>
+        {heading}
+        {rangeToggle}
         <p className="symptom-analytics-empty">
           No symptom data for this range.
         </p>
@@ -271,20 +286,9 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
   const tooltipFormatter = isMultiDay ? formatEpochTick : formatMinutes
 
   return (
-    <div className="symptom-analytics-panel">
-      <h2>Symptom Analytics</h2>
-
-      <div className="symptom-range-toggle">
-        {['today', 'yesterday', 'week'].map(range => (
-          <button
-            key={range}
-            className={selectedRange === range ? 'active' : ''}
-            onClick={() => setSelectedRange(range)}
-          >
-            {range === 'today' ? 'Today' : range === 'yesterday' ? 'Yesterday' : 'This Week'}
-          </button>
-        ))}
-      </div>
+    <div className={panelClass}>
+      {heading}
+      {rangeToggle}
 
       <div className="symptom-legend">
         {symptomNames.map((name, i) => {
@@ -304,7 +308,7 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
         })}
       </div>
 
-      <ResponsiveContainer width="100%" height={420}>
+      <ResponsiveContainer width="100%" height={isFullscreen ? '100%' : 420}>
         <ComposedChart data={chartData} margin={{ top: 30, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(136,136,136,0.2)" />
           <XAxis
