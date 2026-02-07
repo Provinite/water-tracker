@@ -51,8 +51,13 @@ function loadHistoricalData(dateStr) {
 
 export default function Timeline({ waterIntake, pillEntries, symptomEntries, currentUnit, mlToUnit }) {
   const [selectedDate, setSelectedDate] = useState(TODAY)
+  const [filters, setFilters] = useState({ water: true, pill: true, symptom: true })
 
   const isToday = selectedDate === TODAY
+
+  const toggleFilter = (type) => {
+    setFilters(f => ({ ...f, [type]: !f[type] }))
+  }
 
   const { water, pills, symptoms } = useMemo(() => {
     if (isToday) {
@@ -116,10 +121,11 @@ export default function Timeline({ waterIntake, pillEntries, symptomEntries, cur
       label: `${entry.name} — ${entry.severity}/5`,
     }))
 
-    return [...waterEvents, ...pillEvents, ...symptomEvents].sort(
+    const all = [...waterEvents, ...pillEvents, ...symptomEvents].sort(
       (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
     )
-  }, [water, pills, symptoms, currentUnit, mlToUnit])
+    return all.filter(e => filters[e.type])
+  }, [water, pills, symptoms, currentUnit, mlToUnit, filters])
 
   const waterTooltip = (event) => {
     const total = `${mlToUnit(event.hourWindowMl)} ${currentUnit.short}`
@@ -147,6 +153,11 @@ export default function Timeline({ waterIntake, pillEntries, symptomEntries, cur
         <button className="timeline-nav-btn" onClick={goBack} aria-label="Previous day">&lsaquo;</button>
         <span className="timeline-date-label">{formatDateLabel(selectedDate)}</span>
         <button className="timeline-nav-btn" onClick={goForward} disabled={isToday} aria-label="Next day">&rsaquo;</button>
+      </div>
+      <div className="timeline-filters">
+        <button className={`timeline-filter-btn water${filters.water ? '' : ' off'}`} onClick={() => toggleFilter('water')}>{'\u{1F4A7}'} Water</button>
+        <button className={`timeline-filter-btn pill${filters.pill ? '' : ' off'}`} onClick={() => toggleFilter('pill')}>{'\u{1F48A}'} Pills</button>
+        <button className={`timeline-filter-btn symptom${filters.symptom ? '' : ' off'}`} onClick={() => toggleFilter('symptom')}>{'\u{1FA7A}'} Symptoms</button>
       </div>
       {events.length === 0 ? (
         <p className="timeline-empty">{isToday ? 'No events logged yet today' : 'No events recorded'}</p>
