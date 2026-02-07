@@ -135,7 +135,7 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
       </div>
 
       <ResponsiveContainer width="100%" height={420}>
-        <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+        <ComposedChart data={chartData} margin={{ top: 30, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(136,136,136,0.2)" />
           <XAxis
             dataKey="time"
@@ -169,7 +169,7 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
                 strokeWidth={2.5}
                 dot={{ r: 5, strokeWidth: 2 }}
                 activeDot={{ r: 7 }}
-                connectNulls={false}
+                connectNulls
               />
             )
           })}
