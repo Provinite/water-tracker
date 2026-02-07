@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ReferenceLine, ReferenceDot,
+  Tooltip, ReferenceLine, ReferenceDot,
   ResponsiveContainer,
 } from 'recharts'
 import './SymptomAnalytics.css'
@@ -25,32 +25,21 @@ function formatMinutes(mins) {
 }
 
 export default function SymptomAnalytics({ symptomEntries, pillEntries, waterIntake, mlToUnit, currentUnit }) {
+  const [hiddenSymptoms, setHiddenSymptoms] = useState(new Set())
+
   const { chartData, symptomNames, pillEvents, waterDots } = useMemo(() => {
     const names = [...new Set((symptomEntries || []).map(e => e.name))]
 
-    // Collect all unique timestamps from symptom entries
     const timeMap = new Map()
     for (const entry of (symptomEntries || [])) {
       const mins = minutesSinceMidnight(entry.timestamp)
       if (!timeMap.has(mins)) {
         timeMap.set(mins, { time: mins })
       }
-      // For step charts, each point overwrites the previous value for that symptom at that time
       timeMap.get(mins)[entry.name] = entry.severity
     }
 
-    // Sort by time and forward-fill previous symptom values for step display
     const sorted = [...timeMap.values()].sort((a, b) => a.time - b.time)
-    const lastKnown = {}
-    for (const point of sorted) {
-      for (const name of names) {
-        if (point[name] !== undefined) {
-          lastKnown[name] = point[name]
-        } else if (lastKnown[name] !== undefined) {
-          point[name] = lastKnown[name]
-        }
-      }
-    }
 
     // Pill events as vertical reference lines
     const pills = (pillEntries || []).map(entry => ({
@@ -93,6 +82,15 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
     return { chartData: sorted, symptomNames: names, pillEvents: pills, waterDots: dots }
   }, [symptomEntries, pillEntries, waterIntake, mlToUnit, currentUnit])
 
+  const toggleSymptom = (name) => {
+    setHiddenSymptoms(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
+  }
+
   if (!symptomEntries || symptomEntries.length === 0) {
     return (
       <div className="symptom-analytics-panel">
@@ -104,51 +102,77 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
     )
   }
 
+  const visibleNames = symptomNames.filter(n => !hiddenSymptoms.has(n))
+
   const tooltipStyle = {
     background: 'rgba(30,30,46,0.95)',
     border: '1px solid rgba(100,108,255,0.3)',
     borderRadius: 8,
     color: '#fff',
+    fontSize: 13,
   }
 
   return (
     <div className="symptom-analytics-panel">
       <h2>Symptom Analytics</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+
+      <div className="symptom-legend">
+        {symptomNames.map((name, i) => {
+          const color = COLORS[i % COLORS.length]
+          const hidden = hiddenSymptoms.has(name)
+          return (
+            <button
+              key={name}
+              className={`symptom-legend-chip${hidden ? ' hidden' : ''}`}
+              style={{ '--chip-color': color }}
+              onClick={() => toggleSymptom(name)}
+            >
+              <span className="symptom-legend-swatch" />
+              {name}
+            </button>
+          )
+        })}
+      </div>
+
+      <ResponsiveContainer width="100%" height={420}>
+        <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(136,136,136,0.2)" />
           <XAxis
             dataKey="time"
             type="number"
             domain={['dataMin', 'dataMax']}
             tickFormatter={formatMinutes}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 13 }}
             stroke="#888"
           />
           <YAxis
             domain={[0, 5]}
             ticks={[0, 1, 2, 3, 4, 5]}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 13 }}
             stroke="#888"
+            width={30}
           />
           <Tooltip
             contentStyle={tooltipStyle}
             labelFormatter={formatMinutes}
             formatter={(value, name) => [`${value}/5`, name]}
           />
-          <Legend />
 
-          {symptomNames.map((name, i) => (
-            <Line
-              key={name}
-              type="stepAfter"
-              dataKey={name}
-              stroke={COLORS[i % COLORS.length]}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              connectNulls={false}
-            />
-          ))}
+          {visibleNames.map((name) => {
+            const i = symptomNames.indexOf(name)
+            return (
+              <Line
+                key={name}
+                type="monotone"
+                dataKey={name}
+                stroke={COLORS[i % COLORS.length]}
+                strokeWidth={2.5}
+                dot={{ r: 5, strokeWidth: 2 }}
+                activeDot={{ r: 7 }}
+                connectNulls={false}
+              />
+            )
+          })}
 
           {pillEvents.map((pill, i) => (
             <ReferenceLine
@@ -156,7 +180,7 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
               x={pill.time}
               stroke="#667eea"
               strokeDasharray="4 4"
-              label={{ value: `💊 ${pill.label}`, position: 'top', fill: '#667eea', fontSize: 11 }}
+              label={{ value: `💊 ${pill.label}`, position: 'top', fill: '#667eea', fontSize: 12 }}
             />
           ))}
 
@@ -165,7 +189,7 @@ export default function SymptomAnalytics({ symptomEntries, pillEntries, waterInt
               key={`water-${i}`}
               x={dot.time}
               y={dot.y}
-              r={5}
+              r={6}
               fill={dot.color}
               stroke={dot.color}
             />

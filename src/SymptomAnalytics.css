@@ -17,8 +17,44 @@
   padding: 2rem 0;
 }
 
-.symptom-analytics-panel .recharts-legend-item-text {
+.symptom-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.symptom-legend-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  box-sizing: border-box;
+  border: 2px solid var(--chip-color);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--chip-color);
   font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.symptom-legend-chip .symptom-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  flex-shrink: 0;
+}
+
+.symptom-legend-chip.hidden {
+  opacity: 0.35;
+}
+
+.symptom-legend-chip.hidden .symptom-legend-swatch {
+  background: #888;
 }
 
 @media (prefers-color-scheme: light) {
